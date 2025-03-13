@@ -16,6 +16,7 @@
     
         <!-- Scripts -->
         @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+        <link rel="stylesheet" href="{{ asset('input.css') }}">
 </head>
 
 <body>
@@ -52,6 +53,15 @@
                         </li>
                         @endif
                     @else
+                    @if (!empty($total_amount))
+                        
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">
+                            Total Balance : {{ $total_amount->total_amount }}
+                            
+                    </a>
+                    </li>
+                    @endif
                     <!-- Dashboard Link -->
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('home') }}">Dashboard</a>

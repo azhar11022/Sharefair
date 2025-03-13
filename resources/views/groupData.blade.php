@@ -49,9 +49,12 @@
                                 <label for="memberEmail" class="form-label">Member Email</label>
                                 <input type="email" class="form-control" name="memberEmail" id="memberEmail" placeholder="Enter member email" required>
                             </div>
-                            <button type="submit" class="btn btn-success mb-3">
-                                Submit
-                            </button>
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-success">
+                                    Submit
+                                </button>
+                                <span id="cancle-add-member" class="btn btn-danger">Cancel</span>
+                            </div>
                             
                         </form>
                         @endif
@@ -62,6 +65,7 @@
                                 <th>#</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>User_status</th>
                                 @if ($group->created_by == Auth::user()->id)
                                 <th>Delete Member</th>
                                 @endif
@@ -74,11 +78,25 @@
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $user->name }}</td>
                                         <td>{{ $user->email }}</td>
+                                        <td>{{ $user->user_status }}</td>
+                                        
                                         @if ($group->created_by == Auth::user()->id)
                                         @if ($user->id == $group->created_by)
                                             @continue;
                                         @endif
-                                        <td><a href="{{ route('deleteMember',["gid"=>$group->id,"mid"=>$user->id]) }}" onclick="event.preventDefault(); delconfirm({{ $user->id }},'{{ $user->name }}');" class="btn btn-danger"> delete</a></td>
+                                        <td><a href="#" onclick="event.preventDefault(); 
+                                        
+                                        delconfirm(
+                                        {{ $user->id }},
+                                         '{{ $user->name }}',
+                                         @php
+                                                $userAmount = $user_total->firstWhere('user_id', $user->id);
+                                            @endphp
+                        
+                                            {{ $userAmount ? $userAmount->user_total : '0' }}
+                                        );
+
+                                        " class="btn btn-danger"> delete</a></td>
                                         <form action="{{ route('deleteMember',["gid"=>$group->id,"mid"=>$user->id]) }}" class="d-none" id="{{ $user->id }}">@csrf</form>
                                         @endif
                                     </tr>
@@ -100,10 +118,19 @@
     document.getElementById('toggleAddMemberForm').addEventListener('click', function () {
         form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
     });
-
-    function delconfirm(id, name) {
-        if (confirm(`Would you like to delete ${name}?`)) {
-            document.getElementById(id).submit();
+    document.getElementById('cancle-add-member').addEventListener('click',function(){
+        form.style.display = 'none';
+    })
+    function delconfirm(id, name,amount) {
+        console.log(amount);
+        
+        if(amount == 0){
+            if (confirm(`Would you like to delete ${name}?`)) {
+                document.getElementById(id).submit();
+            }
+        }
+        else{
+            alert("You cannot delete the user first settle the expenses");
         }
     }
 </script>

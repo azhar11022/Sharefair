@@ -3,6 +3,11 @@
 <div class="container mt-5">
    
     <!-- Detailed Expenses -->
+    @if (session('danger'))
+      <div class="alert alert-danger" role="alert">
+          {{ session('danger') }}
+      </div>
+    @endif
     <div class="mb-3" id="form_repay">
             @if ($errors)
             @foreach ($errors->all() as $item)
@@ -67,7 +72,7 @@
             {{ $expense->p_amount }}
           </td>
           @endif
-          @if (Auth::user()->id == $expense->user_paid && $expense->user_id != $expense->user_paid && $expense->p_amount >0)
+          @if (Auth::user()->id == $expense->user_paid && $expense->p_amount >0)
                     <td><a href="#" onclick="event.preventDefault(); show({{ $expense->id}},{{ $expense->p_amount}},{{ $expense->u_id }},{{ $expense->user_paid }},{{ $expense->e_id }} )" class="btn btn-primary">Pay</a></td>
           @endif
          
@@ -80,7 +85,7 @@
     <script>
         function show(expense_p_id,amount,paid_by,paid_to,e_id){
             let repay = document.getElementById('form_repay');
-            let route = "{{ route('repay', ':id') }}".replace(':id', expense_p_id);
+            let route = "{{ route('repay')}}"
             
             let form = `
             <form action="${route}" method="POST" id="form">

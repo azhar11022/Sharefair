@@ -66,7 +66,7 @@
 
 <div class="expense-form">
     <h2>Add an Expense</h2>
-    <form action="{{ route('addexpenses',$group->id) }}" method="POST" id="addExpenseForm">
+    <form action="{{ route('addexpenses',$group->id) }}" method="POST" id="addExpenseForm" enctype="multipart/form-data">
         <!-- CSRF Token -->
         @csrf
         
@@ -74,6 +74,7 @@
         <div class="form-group">
             <label for="description">Description</label>
             <input type="text" id="description" name="description" class="form-control" placeholder="Enter a description" >
+            <div class="" id="desc-error"></div>
             @error('description')
             <div class="alert alert-danger" role="alert">
                 {{ $message }}
@@ -99,6 +100,9 @@
             <select id="paid_by" name="paid_by" class="form-control">
                 @isset($users)
                 @foreach ($users as $user)
+                @if ($user->user_status == 'pending')
+                    @continue;
+                @endif
                 <option value="{{ $user->id }}">{{ $user->name }} &nbsp; | &nbsp;{{ $user->email }}</option>
                 @endforeach
                 @endisset
@@ -136,8 +140,11 @@
             <label for="group">Divide amount on Members</label><br><br>
             
             @foreach ($users as $user)
+            @if ($user->user_status == 'pending')
+                    @continue;
+                @endif
             <label for="name">{{ $user->name }} paid</label>
-            <input type="text" id="group" name="{{ $user->id }}" class="form-control exact_amount_input ex_a" value="0"  >
+            <input type="number" id="group" name="{{ $user->id }}" class="form-control exact_amount_input ex_a" value="0"  >
             @endforeach
         </div>
         {{-- split method percentage --}}
@@ -146,8 +153,11 @@
             <label for="group">Divide percentage on Members</label><br><br>
             
             @foreach ($users as $user)
+            @if ($user->user_status == 'pending')
+                    @continue;
+                @endif
             <label for="name">{{ $user->name }} paid</label>
-            <input type="text" id="group" name="{{ $user->id }}" class="form-control percentage_input ex_p" value="0"  >
+            <input type="number" id="group" name="{{ $user->id }}" class="form-control percentage_input ex_p" value="0"  >
             @endforeach
         </div>
 
@@ -155,6 +165,10 @@
         <div class="form-group">
             <label for="group">Group</label>
             <input type="text" id="group" class="form-control" value="{{ $group->group_name }}" readonly >
+        </div>
+        <div class="form-group">
+            <label for="receipts">Receipt (optional)</label>
+            <input type="file" id="group" name="recipt" class="form-control btn btn-primary">
         </div>
         
         <!-- Date -->
@@ -194,52 +208,81 @@
         item.setAttribute('disabled', 'true');
     }
     
+    amount_to_divide.addEventListener('input',function (){
+        let each = amount_to_divide.value.trim()/users_of_exect_amount.length;
+        console.log(amount_to_divide.value);
+        
+        for(item of users_of_exect_amount){
+            item.value = each;
+        }
+    })
     let ex_a = document.querySelectorAll('.ex_a');
     let ex_p = document.querySelectorAll('.ex_p');
     var amount_change = 0;
-    var percentage_change = 100;
-        // amount_change = parseFloat(amount_to_divide.value);
+        var percentage_change = 100;
 
         for (let item of ex_a) {
-            item.addEventListener('blur', (e) => {
-                // Subtract the input value from amount_change when the input loses focus
-                let input_value = parseFloat(item.value);
+            item.addEventListener('input', (e) => {
+                let input_value = parseFloat(item.value) || 0;
+                amount_change = parseFloat(amount_to_divide.value) || 0;
                 
-                if(amount_change == 0){
-                    amount_change = parseFloat(amount_to_divide.value) || 0
-                }
+                // Subtract the sum of all locked values
+                let locked_total = [...document.querySelectorAll('.ex_a.lock')].reduce((acc, el) => acc + (parseFloat(el.value) || 0), 0);
+                amount_change -= locked_total + input_value;
 
-                amount_change -= input_value;
-                item.classList.remove('ex_a');
-                change_amount();
-                
-        });
-    }
-        for (let item of ex_p) {
+                change_amount(e.target);
+            });
+
             item.addEventListener('blur', (e) => {
-                // Subtract the input value from amount_change when the input loses focus
-                let input_value = parseFloat(item.value);
-                percentage_change -= input_value;
-                item.classList.remove('ex_p');
-                change_percentage();
-        });
-    }
-    function change_amount(){
-        ex_a = document.querySelectorAll('.ex_a');
-        let len = ex_a.length;
-        let each_remaining = amount_change/len;
-        for(item of ex_a){
-            item.value = each_remaining;
+                e.target.classList.add('lock'); // Lock the input on blur
+            });
         }
-    }
-    function change_percentage(){
-        ex_p = document.querySelectorAll('.ex_p');
-        let len = ex_p.length;
-        let each_remaining = percentage_change/len;
-        for(item of ex_p){
-            item.value = each_remaining;
+
+        function change_amount(currentInput) {
+            let ex_a = document.querySelectorAll('.ex_a:not(.lock)'); // Select unlocked inputs
+            let len = ex_a.length - 1;
+
+            if (len > 0) {
+                let each_remaining = amount_change / len;
+
+                for (let item of ex_a) {
+                    if (item === currentInput) continue; // Skip the currently edited input
+                    item.value = each_remaining.toFixed(2);
+                }
+            }
         }
-    }
+        for (let item of ex_p) {
+            item.addEventListener('input', (e) => {
+                percentage_change = 100;
+                
+                // Calculate the remaining percentage after subtracting locked values
+                let locked_total = [...document.querySelectorAll('.ex_p.lock')].reduce((acc, el) => acc + (parseFloat(el.value) || 0), 0);
+                let input_value = parseFloat(item.value) || 0;
+
+                percentage_change -= (locked_total + input_value);
+                
+                change_percentage(e.target);
+            });
+
+            item.addEventListener('blur', (e) => {
+                e.target.classList.add('lock'); // Lock the input on blur
+            });
+        }
+
+        function change_percentage(currentInput) {
+            let ex_p = document.querySelectorAll('.ex_p:not(.lock)'); // Select unlocked inputs
+            let len = ex_p.length - 1;
+
+            if (len > 0) {
+                let each_remaining = percentage_change / len;
+                
+                for (let item of ex_p) {
+                    if (item === currentInput) continue; // Skip the currently edited input
+                    item.value = each_remaining.toFixed(2);
+                }
+            }
+        }
+
 
     
     split.addEventListener('input',(e)=>{
@@ -293,6 +336,35 @@
     })
     
     function check(){
+        let description = document.getElementById('description').value.trim();
+    let descError = document.getElementById('desc-error'); // Get the error container
+
+    // Check if descError exists in the DOM
+    if (!descError) {
+        console.error("Element with ID 'desc-error' not found.");
+        return;
+    }
+
+    // Remove any existing alert
+    let existingAlert = descError.querySelector('.alert-box');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+
+    if (description === '') {
+        // Create alert div
+        let alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger mt-2';
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.innerHTML = `<strong>Error:</strong> Description is required!`;
+
+        // Prepend the alert inside descError
+        descError.prepend(alertDiv);
+
+        // Auto-remove alert after 3 seconds
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+
         if(split.value == 'equally'){
             form_addexpense.submit();
         }

@@ -11,7 +11,7 @@
         font-size: 12px;
     }
 </style>
-<div class="container">
+<div class="container m-5">
     @if (session('success'))
     <div class="alert alert-success" role="alert">
         added successfully
@@ -24,7 +24,7 @@
             <div class="form-row ">
               <div class="col m-3">
                 <label for="memberEmail">Group Name</label>
-                <input type="text" name="group_name" class="form-control" id="group_name" placeholder="First name" value="{{ old('group_name') }}">
+                <input type="text" name="group_name" class="form-control" id="group_name" placeholder="First name" value="{{ old('group_name') }}" style="border:1px solid black">
                 @error('group_name')
                 <div class="alert alert-danger" role="alert">{{ $message }}</div>
                 @enderror
@@ -32,8 +32,8 @@
               @php
               $count = 1;
               @endphp
-              <div class="m-3 row">
-                <p>{{ Auth::user()->name }} ({{ Auth::user()->email }})</p>
+              <div class="mx-3  row" style="margin-bottom:-10px">
+                <b class="mb-2 col-md-6" >{{ Auth::user()->name }} </b> <b class="col-md-6 mb-2"> ({{ Auth::user()->email }})</b>
                 <label for="name" class="col-md-3">Name</label>
                 <label for="name" class="col-md-3 offset-md-3">Email</label>
               </div>
@@ -41,19 +41,19 @@
               <div class="" style="display: flex">
                 
                   <div class="col-md-5 m-3">
-                    <input type="text" id="memberName" class="form-control name" name="memberName[{{ $count }}]" placeholder="Enter member name" value="">
+                    <input type="text" id="memberName" class="form-control name" name="memberName[{{ $count }}]" placeholder="Enter member name" value="" style="border:1px solid black">
                 </div>
        
                 <div class="col-md-6 offset-md-1 m-3">
-                    <input type="text" id="memberEmail" class="form-control email"  name="memberEmail[{{ $count }}]" placeholder="Enter member email">
+                    <input type="text" id="memberEmail" class="form-control email"  name="memberEmail[{{ $count }}]" placeholder="Enter member email" style="border:1px solid black">
                 </div>
                 <button type="button" class="delete-member" onclick="deleteMember(this)">x</button>
               </div>
 
             <div class="member-container" id="additionalMembers"></div>
-            <button type="button" class="form-control m-3 w- 25" style="font-size:10px" id="addMemberButton">Add Another Member</button>
+            <button type="button" class="form-control m-3 w- 25 btn btn-primary" style="font-size:10px" id="addMemberButton">Add Another Member</button>
               <div class="col-md-12 m-3">
-                  <select class="custom-select form-control" name="group_type" id="group_type">
+                  <select class="custom-select form-control" name="group_type" id="group_type" style="border:1px solid black">
                       <option selected disabled value="">Group Type</option>
                       <option value="hostal" name="">Hostel</option>
                       <option value="home" name="">Home</option>
@@ -65,7 +65,7 @@
                     <div class="alert alert-danger" role="alert">{{ $message }}</div>
                     @enderror
               </div>
-              <a href="{{ route('addgroup') }}"  class="form-control m-3 w-50 text-center" style="text-decoration: none" onclick="event.preventDefault(); check();">Add Group</a>
+              <a href="{{ route('addgroup') }}"  class="form-control m-3 w-50 text-center btn btn-success" style="text-decoration: none" onclick="event.preventDefault(); check();">Add Group</a>
     
             </div>
           </form>
@@ -80,11 +80,11 @@
         const memberFields = `
             <div class="" style="display: flex">
                   <div class="col-md-5 m-3">
-                    <input type="text" id="memberName" class="form-control name" name="memberName[{{ $count }}]" placeholder="Enter member name">
+                    <input type="text" id="memberName" class="form-control name" name="memberName[{{ $count }}]" placeholder="Enter member name" style="border:1px solid black">
                 </div>
        
                 <div class="col-md-6 offset-md-1 m-3">
-                    <input type="text" id="memberEmail" class="form-control email"  name="memberEmail[{{ $count }}]" placeholder="Enter member email">
+                    <input type="text" id="memberEmail" class="form-control email"  name="memberEmail[{{ $count }}]" placeholder="Enter member email"style="border:1px solid black">
                 </div>
                   <button type="button" class="delete-member" onclick="deleteMember(this)">x</button>
               </div>
@@ -129,10 +129,10 @@
             showAlert(input, 'Enter a valid email');
             count++;
         } 
-        // else if (emailSet.has(email)) {
-        //     showAlert(input, 'Email must be unique');
-        //     count++;
-        // }
+        else if (emailSet.has(email)) {
+            showAlert(input, 'Email must be unique');
+            count++;
+        }
          else {
             removeAlert(input);
             emailSet.add(email); // Add email to the set
